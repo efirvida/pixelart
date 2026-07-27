@@ -3,10 +3,16 @@ schema: spec-driven
 
 context: |
   Project: pixelArt — a pixel art creation/editing tool
-  Stack: not yet initialized (empty project)
-  Architecture: not yet established
-  Testing: no test runner available
-  Style: not yet established
+  Stack: React 19 + TypeScript + Vite 8 (frontend only for this session)
+  Architecture: Feature-based layout with context-driven state (GridContext)
+  Testing: Vitest 4 + @testing-library/react 16
+  Style: Raw inline styles (no CSS framework, no CSS modules, no CSS-in-JS)
+
+session_config:
+  artifact_store_mode: openspec
+  execution_mode: auto
+  delivery_strategy: single-pr
+  review_budget_lines: 800
 
 rules:
   proposal:
@@ -23,25 +29,37 @@ rules:
   apply:
     guidelines:
       - Follow existing code patterns when they emerge
-    tdd: false
-    test_command: ""
+    tdd: true
+    test_command: "cd frontend && npx vitest run --reporter=verbose"
   verify:
-    test_command: ""
-    build_command: ""
+    test_command: "cd frontend && npx vitest run --reporter=verbose"
+    build_command: "cd frontend && npx tsc --noEmit && npx vite build"
     coverage_threshold: 0
-  archive:
-    - Warn before merging destructive deltas
 
 testing:
-  strict_tdd: false
+  strict_tdd: true
   detected: "2026-07-27"
-  runner: null
+  runner: vitest (v4.1.10)
   layers:
-    unit: { available: false, tool: null }
-    integration: { available: false, tool: null }
-    e2e: { available: false, tool: null }
-  coverage: { available: false, command: null }
+    unit:
+      available: true
+      tool: vitest + @testing-library/react
+    integration:
+      available: true
+      tool: vitest + renderWithProvider (GridProvider wrapper)
+    e2e:
+      available: false
+      tool: null
+  coverage:
+    available: true
+    command: "cd frontend && npx vitest run --coverage"
   quality:
-    linter: { available: false, command: null }
-    type_checker: { available: false, command: null }
-    formatter: { available: false, command: null }
+    linter:
+      available: false
+      command: null
+    type_checker:
+      available: true
+      command: "cd frontend && npx tsc --noEmit"
+    formatter:
+      available: false
+      command: null
