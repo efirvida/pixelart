@@ -1,0 +1,112 @@
+/* ControlsPanel — CSS Module */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0 var(--space-1);
+  margin-bottom: var(--space-1);
+}
+
+/* ── Toggle switch ─────────────────────────── */
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle:hover .toggleTrack {
+  border-color: var(--color-primary);
+}
+
+.checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.checkbox:focus-visible + .toggleTrack {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.toggleTrack {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.toggleTrack::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: var(--color-surface-raised);
+  border-radius: var(--radius-full);
+  transition: transform var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.checkbox:checked + .toggleTrack {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.checkbox:checked + .toggleTrack::after {
+  transform: translateX(18px);
+}
+
+.toggleLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+/* ── Actions ────────────────────────────────── */
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+  padding-top: var(--space-1);
+}
+
+/* ── Mobile (accordion-ready) ───────────────── */
+
+@media (max-width: 767px) {
+  .section {
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+}

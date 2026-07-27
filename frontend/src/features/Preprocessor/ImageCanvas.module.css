@@ -1,0 +1,33 @@
+/* ImageCanvas — CSS Module */
+
+.container {
+  position: relative;
+  display: inline-block;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  user-select: none;
+  line-height: 0;
+  background: var(--color-surface-base);
+}
+
+.canvas {
+  display: block;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: auto;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 200px;
+  font-size: var(--font-size-md);
+  color: var(--color-text-disabled);
+}
