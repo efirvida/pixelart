@@ -143,8 +143,8 @@ export default function ImageCanvas({
     };
   }, [disabled, scale, dw, dh, onCropChange]);
 
-  const handlePointerDown = useCallback(
-    (ev: React.PointerEvent) => {
+  const handleMouseDown = useCallback(
+    (ev: React.MouseEvent) => {
       if (disabled || !containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       const mx = ev.clientX - rect.left;
@@ -153,17 +153,27 @@ export default function ImageCanvas({
 
       if (mx >= x && mx <= x + size && my >= y && my <= y + size) {
         tracking.current = { offX: mx - x, offY: my - y };
-        ev.currentTarget.setPointerCapture(ev.pointerId);
         ev.preventDefault();
       }
     },
     [disabled, displayCrop],
   );
 
-  // Cleanup stale pointer capture
-  const handlePointerUp = useCallback(() => {
-    tracking.current = null;
-  }, []);
+  const handleTouchStart = useCallback(
+    (ev: React.TouchEvent) => {
+      if (disabled || !containerRef.current || !ev.touches[0]) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const mx = ev.touches[0].clientX - rect.left;
+      const my = ev.touches[0].clientY - rect.top;
+      const { x, y, size } = displayCrop;
+
+      if (mx >= x && mx <= x + size && my >= y && my <= y + size) {
+        tracking.current = { offX: mx - x, offY: my - y };
+        ev.preventDefault();
+      }
+    },
+    [disabled, displayCrop],
+  );
 
   if (sourceSize.w <= 0 || sourceSize.h <= 0) {
     return (
@@ -180,6 +190,8 @@ export default function ImageCanvas({
       ref={containerRef}
       className={styles.container}
       style={{ width: dw, height: dh }}
+      onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
     >
       {/* The rendered preview canvas */}
       <canvas
@@ -196,6 +208,7 @@ export default function ImageCanvas({
           width={dw}
           height={dh}
           style={{ cursor: tracking.current ? 'grabbing' : 'default' }}
+          pointerEvents="none"
         >
           <defs>
             <mask id="preproc-crop-mask">
@@ -210,25 +223,12 @@ export default function ImageCanvas({
             </mask>
           </defs>
 
-          {/* Dark overlay outside crop — NOT clickable */}
+          {/* Dark overlay outside crop */}
           <rect
             width={dw}
             height={dh}
             fill="rgba(0,0,0,0.45)"
             mask="url(#preproc-crop-mask)"
-            pointerEvents="none"
-          />
-
-          {/* Transparent hit area over the crop rect — captures pointer events */}
-          <rect
-            x={displayCrop.x}
-            y={displayCrop.y}
-            width={displayCrop.size}
-            height={displayCrop.size}
-            fill="transparent"
-            onPointerDown={handlePointerDown}
-            onPointerUp={handlePointerUp}
-            style={{ cursor: 'grab' }}
           />
 
           {/* Crop border */}
@@ -240,14 +240,13 @@ export default function ImageCanvas({
             fill="none"
             stroke="#fff"
             strokeWidth="2"
-            pointerEvents="none"
           />
 
-          {/* Corner handles — not interactive, purely visual */}
-          <circle cx={displayCrop.x} cy={displayCrop.y} r="4" fill="var(--color-primary)" pointerEvents="none" />
-          <circle cx={displayCrop.x + displayCrop.size} cy={displayCrop.y} r="4" fill="var(--color-primary)" pointerEvents="none" />
-          <circle cx={displayCrop.x} cy={displayCrop.y + displayCrop.size} r="4" fill="var(--color-primary)" pointerEvents="none" />
-          <circle cx={displayCrop.x + displayCrop.size} cy={displayCrop.y + displayCrop.size} r="4" fill="var(--color-primary)" pointerEvents="none" />
+          {/* Corner handles */}
+          <circle cx={displayCrop.x} cy={displayCrop.y} r="4" fill="var(--color-primary)" />
+          <circle cx={displayCrop.x + displayCrop.size} cy={displayCrop.y} r="4" fill="var(--color-primary)" />
+          <circle cx={displayCrop.x} cy={displayCrop.y + displayCrop.size} r="4" fill="var(--color-primary)" />
+          <circle cx={displayCrop.x + displayCrop.size} cy={displayCrop.y + displayCrop.size} r="4" fill="var(--color-primary)" />
         </svg>
       )}
     </div>
