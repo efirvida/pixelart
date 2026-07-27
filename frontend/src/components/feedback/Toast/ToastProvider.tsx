@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { Toast } from './Toast';
 import type { ToastItem } from './Toast';
@@ -61,7 +61,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const error = useCallback((message: string) => addToast('error', message), [addToast]);
   const info = useCallback((message: string) => addToast('info', message), [addToast]);
 
-  const api: ToastAPI = { success, error, info, dismiss };
+  const api = useMemo<ToastAPI>(
+    () => ({ success, error, info, dismiss }),
+    [success, error, info, dismiss],
+  );
 
   return (
     <ToastContext.Provider value={api}>

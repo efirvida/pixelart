@@ -62,6 +62,8 @@ export default function Preprocessor({ file, onBack }: Props) {
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   /** Container div for ResizeObserver. */
   const containerRef = useRef<HTMLDivElement>(null);
+  /** Guards against re-applying initial crop when effect re-fires. */
+  const loadedOnce = useRef(false);
 
   // ---- Derived --------------------------------------------------------------
 
@@ -96,22 +98,31 @@ export default function Preprocessor({ file, onBack }: Props) {
 
   const [dataUrl, setDataUrl] = useState<string | null>(null);
 
+  // Stabilise callback/object refs so the effect only depends on `file`.
+  // `toast` from useToast() changes on every ToastProvider render (new api {}),
+  // and `onBack` could change if App re-renders — both would re-trigger the
+  // decode effect and reset user-adjusted filter params.
+  const onBackRef = useRef(onBack);
+  onBackRef.current = onBack;
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
+
   useEffect(() => {
     let cancelled = false;
+    const t = toastRef.current;
+    const back = onBackRef.current;
 
     // Validate type
     if (!ACCEPTED_TYPES.includes(file.type)) {
-      toast.error(
+      t.error(
         'Unsupported file type. Please use JPEG, PNG, or WebP images.',
       );
-      onBack();
+      back();
       return;
     }
 
     async function load() {
       try {
-        // Use FileReader (data URL) instead of URL.createObjectURL
-        // to avoid blob-revocation race conditions across mount/unmount.
         const url = await readFileAsDataUrl(file);
         if (cancelled) return;
 
@@ -134,7 +145,7 @@ export default function Preprocessor({ file, onBack }: Props) {
           const s = MAX_SOURCE_DIM / Math.max(w, h);
           w = Math.round(w * s);
           h = Math.round(h * s);
-          toast.info(`Large image resized to ${w}×${h} for processing`);
+          t.info(`Large image resized to ${w}×${h} for processing`);
         }
 
         // Create offscreen source canvas
@@ -144,21 +155,26 @@ export default function Preprocessor({ file, onBack }: Props) {
         sourceCanvasRef.current = canvas;
         setSourceSize({ w, h });
 
-        // Initial crop: center square of the smaller dimension
-        const minDim = Math.min(w, h);
-        setParams((prev) => ({
-          ...prev,
-          cropX: Math.round((w - minDim) / 2),
-          cropY: Math.round((h - minDim) / 2),
-          cropSize: minDim,
-        }));
+        // On first load, set initial crop to center square.
+        // On subsequent runs (from effect re-fire), preserve user params.
+        if (!loadedOnce.current) {
+          loadedOnce.current = true;
+          const minDim = Math.min(w, h);
+          setParams((p) => ({
+            ...p,
+            cropX: Math.round((w - minDim) / 2),
+            cropY: Math.round((h - minDim) / 2),
+            cropSize: minDim,
+          }));
+        }
+        setSourceSize({ w, h });
 
         setImageReady(true);
       } catch (err) {
         if (!cancelled) {
           const msg = err instanceof Error ? err.message : 'Failed to decode image';
-          toast.error(`${msg}. The file may be corrupted or in an unsupported format.`);
-          onBack();
+          t.error(`${msg}. The file may be corrupted or in an unsupported format.`);
+          back();
         }
       }
     }
@@ -168,7 +184,7 @@ export default function Preprocessor({ file, onBack }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [file, onBack, toast]);
+  }, [file]);
 
   // ---- Preview render -------------------------------------------------------
 

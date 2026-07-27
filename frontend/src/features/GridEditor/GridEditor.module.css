@@ -31,6 +31,8 @@
   cursor: pointer;
   display: block;
   margin-top: var(--space-2);
+  max-width: 100%;
+  height: auto;
 }
 
 .canvas:focus-visible {
