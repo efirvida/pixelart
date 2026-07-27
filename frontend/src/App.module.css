@@ -1,0 +1,47 @@
+.editorLayout {
+  display: flex;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.exportForm {
+  margin-top: var(--space-8);
+  display: flex;
+  gap: var(--space-3);
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.exportLabel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.exportError {
+  display: block;
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  margin-top: var(--space-2);
+}
+
+.cellSizeInput {
+  width: 80px;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background: var(--color-surface-raised);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.cellSizeInput:focus-visible {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+

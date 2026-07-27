@@ -1,10 +1,16 @@
 import { useCallback, useState } from 'react';
 import type { FormEvent } from 'react';
 import { exportPdf, downloadBlob, ApiError } from './api/client';
-import ComparisonSlider from './components/ComparisonSlider';
-import GridEditor from './components/GridEditor';
-import UploadWidget from './components/UploadWidget';
+import ComparisonSlider from './features/ComparisonSlider/ComparisonSlider';
+import GridEditor from './features/GridEditor/GridEditor';
+import UploadWidget from './features/UploadWidget/UploadWidget';
 import { GridProvider, useGrid } from './context/GridContext';
+import { PageLayout } from './components/layout/PageLayout/PageLayout';
+import { Header } from './components/layout/Header/Header';
+import { Section } from './components/layout/Section/Section';
+import { Footer } from './components/layout/Footer/Footer';
+import { Button } from './components/ui/Button/Button';
+import styles from './App.module.css';
 
 function EditorLayout() {
   const { grid, palette } = useGrid();
@@ -42,44 +48,29 @@ function EditorLayout() {
   );
 
   return (
-    <div
-      style={{
-        maxWidth: 960,
-        margin: '0 auto',
-        padding: 24,
-        fontFamily: 'system-ui, sans-serif',
-      }}
+    <PageLayout
+      header={
+        <Header
+          title="Pixel Art Editor"
+          subtitle="Convert images into bead patterns"
+        />
+      }
+      footer={<Footer />}
     >
-      <h1 style={{ fontSize: '1.5rem', marginBottom: 8 }}>
-        PixelArt Reducer
-      </h1>
-      <p style={{ color: '#6b7280', marginBottom: 24 }}>
-        Upload a pre-cropped image, match it to your bead palette, tweak
-        individual cells, then export a printable PDF.
-      </p>
-
-      <UploadWidget />
+      <Section title="Upload">
+        <UploadWidget />
+      </Section>
 
       {hasData && (
-        <>
-          <div
-            style={{
-              display: 'flex',
-              gap: 24,
-              marginTop: 32,
-              flexWrap: 'wrap',
-            }}
-          >
+        <Section title="Editor">
+          <div className={styles.editorLayout}>
             <ComparisonSlider />
             <GridEditor />
           </div>
 
-          <form
-            onSubmit={handleExport}
-            style={{ marginTop: 32, display: 'flex', gap: 12, alignItems: 'end' }}
-          >
-            <label>
-              Cell size (mm):
+          <form onSubmit={handleExport} className={styles.exportForm}>
+            <label className={styles.exportLabel}>
+              Cell size (mm)
               <input
                 type="number"
                 min={1}
@@ -87,32 +78,26 @@ function EditorLayout() {
                 step={0.5}
                 value={cellSize}
                 onChange={(e) => setCellSize(Number(e.target.value))}
-                style={{ marginLeft: 8, width: 80 }}
+                className={styles.cellSizeInput}
               />
             </label>
-            <button
+            <Button
               type="submit"
+              variant="primary"
               disabled={exporting}
-              style={{
-                padding: '8px 20px',
-                background: '#4f46e5',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 6,
-                cursor: 'pointer',
-              }}
+              loading={exporting}
             >
               {exporting ? 'Generating PDF…' : 'Download PDF'}
-            </button>
+            </Button>
             {exportError && (
-              <span role="alert" style={{ color: '#b91c1c', fontSize: '0.875rem' }}>
+              <span role="alert" className={styles.exportError}>
                 {exportError}
               </span>
             )}
           </form>
-        </>
+        </Section>
       )}
-    </div>
+    </PageLayout>
   );
 }
 
