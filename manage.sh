@@ -11,6 +11,8 @@
 #   ./manage.sh test           Run all tests
 #   ./manage.sh test:backend   Run backend tests (pytest)
 #   ./manage.sh test:frontend  Run frontend tests (vitest)
+#   ./manage.sh restart        Restart backend + frontend (dev mode)
+#   ./manage.sh restart:prod   Restart backend (production mode)
 #   ./manage.sh stop           Stop all running services
 #   ./manage.sh status         Show running services and ports
 #   ./manage.sh logs           Watch backend + frontend logs
@@ -131,6 +133,19 @@ cmd_test_frontend() {
     ok "Frontend tests passed"
 }
 
+cmd_restart() {
+    info "Restarting dev services..."
+    stop_service backend
+    stop_service frontend
+    cmd_dev
+}
+
+cmd_restart_prod() {
+    info "Restarting production backend..."
+    stop_service backend
+    cmd_prod
+}
+
 cmd_stop() {
     stop_service backend
     stop_service frontend
@@ -209,6 +224,8 @@ case "${1:-help}" in
     test)           cmd_test ;;
     test:backend)   cmd_test_backend ;;
     test:frontend)  cmd_test_frontend ;;
+    restart)         cmd_restart ;;
+    restart:prod)    cmd_restart_prod ;;
     stop)           cmd_stop ;;
     status|st)      cmd_status ;;
     logs)           shift; cmd_logs "$@" ;;
