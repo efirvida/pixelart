@@ -195,9 +195,7 @@ export default function ImageCanvas({
           className={styles.overlay}
           width={dw}
           height={dh}
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
-          style={{ cursor: tracking.current ? 'grabbing' : 'grab' }}
+          style={{ cursor: tracking.current ? 'grabbing' : 'default' }}
         >
           <defs>
             <mask id="preproc-crop-mask">
@@ -212,12 +210,25 @@ export default function ImageCanvas({
             </mask>
           </defs>
 
-          {/* Dark overlay outside crop */}
+          {/* Dark overlay outside crop — NOT clickable */}
           <rect
             width={dw}
             height={dh}
             fill="rgba(0,0,0,0.45)"
             mask="url(#preproc-crop-mask)"
+            pointerEvents="none"
+          />
+
+          {/* Transparent hit area over the crop rect — captures pointer events */}
+          <rect
+            x={displayCrop.x}
+            y={displayCrop.y}
+            width={displayCrop.size}
+            height={displayCrop.size}
+            fill="transparent"
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+            style={{ cursor: 'grab' }}
           />
 
           {/* Crop border */}
@@ -229,13 +240,14 @@ export default function ImageCanvas({
             fill="none"
             stroke="#fff"
             strokeWidth="2"
+            pointerEvents="none"
           />
 
-          {/* Corner handles */}
-          <circle cx={displayCrop.x} cy={displayCrop.y} r="4" fill="var(--color-primary)" />
-          <circle cx={displayCrop.x + displayCrop.size} cy={displayCrop.y} r="4" fill="var(--color-primary)" />
-          <circle cx={displayCrop.x} cy={displayCrop.y + displayCrop.size} r="4" fill="var(--color-primary)" />
-          <circle cx={displayCrop.x + displayCrop.size} cy={displayCrop.y + displayCrop.size} r="4" fill="var(--color-primary)" />
+          {/* Corner handles — not interactive, purely visual */}
+          <circle cx={displayCrop.x} cy={displayCrop.y} r="4" fill="var(--color-primary)" pointerEvents="none" />
+          <circle cx={displayCrop.x + displayCrop.size} cy={displayCrop.y} r="4" fill="var(--color-primary)" pointerEvents="none" />
+          <circle cx={displayCrop.x} cy={displayCrop.y + displayCrop.size} r="4" fill="var(--color-primary)" pointerEvents="none" />
+          <circle cx={displayCrop.x + displayCrop.size} cy={displayCrop.y + displayCrop.size} r="4" fill="var(--color-primary)" pointerEvents="none" />
         </svg>
       )}
     </div>
