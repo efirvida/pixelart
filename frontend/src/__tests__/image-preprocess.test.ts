@@ -420,7 +420,7 @@ describe('applyFilters', () => {
     let capturedImageData: ImageData | null = null;
     const origGetContext = HTMLCanvasElement.prototype.getContext;
 
-    HTMLCanvasElement.prototype.getContext = vi.fn(
+    const origMock = vi.fn(
       (_ctxId: string, _options?: unknown) => {
         return {
           drawImage: vi.fn(),
@@ -430,7 +430,8 @@ describe('applyFilters', () => {
           }),
         } as unknown as CanvasRenderingContext2D;
       },
-    ) as typeof HTMLCanvasElement.prototype.getContext;
+    );
+    HTMLCanvasElement.prototype.getContext = origMock as unknown as typeof HTMLCanvasElement.prototype.getContext;
 
     try {
       const source = createOffscreenCanvas(4, 4);
