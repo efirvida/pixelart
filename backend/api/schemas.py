@@ -59,3 +59,23 @@ class UploadResponse(BaseModel):
         ...,
         description="Grid width and height after resize",
     )
+
+
+class MatchRequest(BaseModel):
+    """JSON body for POST /api/match.
+
+    Accepts a pre-processed NxN RGB pixel grid and a palette.
+    The frontend handles steps 1-6 of the pipeline; this endpoint
+    only does CIELAB Delta-E-2000 palette matching.
+    """
+
+    grid: List[List[List[int]]] = Field(
+        ...,
+        description="NxN array of [R, G, B] triples, each value 0-255",
+    )
+    palette: List[str] = Field(
+        ...,
+        description="Palette hex strings (max 10, #RRGGBB format)",
+        min_length=1,
+        max_length=10,
+    )
