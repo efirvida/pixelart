@@ -1,0 +1,37 @@
+/* ==========================================================================
+   Card — CSS Module
+   ========================================================================== */
+
+.base {
+  background-color: var(--color-surface-raised);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+}
+
+/* ---- Elevation (shadows) ------------------------------------------------- */
+
+.sm {
+  box-shadow: var(--shadow-sm);
+}
+
+.md {
+  box-shadow: var(--shadow-md);
+}
+
+.lg {
+  box-shadow: var(--shadow-lg);
+}
+
+/* ---- Padding ------------------------------------------------------------- */
+
+.paddingSm {
+  padding: var(--space-3);
+}
+
+.paddingMd {
+  padding: var(--space-5);
+}
+
+.paddingLg {
+  padding: var(--space-8);
+}
