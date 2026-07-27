@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Button } from '../../components/ui/Button/Button';
+import { RangeSlider } from '../../components/ui/RangeSlider/RangeSlider';
+import styles from './ImageCropper.module.css';
 
 interface Props {
   file: File;
-  /** Called with (file, cropX, cropY, cropSize) in natural px */
   onConfirm: (file: File, cropX: number, cropY: number, cropSize: number) => void;
   onBack: () => void;
 }
@@ -10,14 +12,6 @@ interface Props {
 const MIN_SZ = 20;
 const MAX_DISPLAY = 560;
 
-/**
- * Crop panel — drag ON THE IMAGE to move the square.
- *
- * The mousedown listener goes directly on the <img> element.
- * If the user clicks inside the square → drag it.
- * If they click outside → the square stays where it is.
- * The slider below controls the square size.
- */
 export default function ImageCropper({ file, onConfirm, onBack }: Props) {
   const imgRef = useRef<HTMLImageElement>(null);
   const [natural, setNatural] = useState({ w: 0, h: 0 });
@@ -28,11 +22,21 @@ export default function ImageCropper({ file, onConfirm, onBack }: Props) {
   const areaRef = useRef(area);
   areaRef.current = area;
 
-  // ── Image load ──────────────────────────────────────────────────────
+  // Memoize blob URL so the <img> src is stable across renders.
+  // Without this, URL.createObjectURL(file) creates a NEW url every
+  // render, causing the image to reload and reset the crop area.
+  const [blobUrl, setBlobUrl] = useState('');
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    setBlobUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+
+  // ── Image load — runs once per file ───────────────────────────
 
   useEffect(() => {
     const img = imgRef.current;
-    if (!img) return;
+    if (!img || !blobUrl) return;
     const onload = () => {
       const nw = img.naturalWidth;
       const nh = img.naturalHeight;
@@ -45,12 +49,15 @@ export default function ImageCropper({ file, onConfirm, onBack }: Props) {
       setArea({ x: Math.round((dw - sz) / 2), y: Math.round((dh - sz) / 2), size: sz });
       setReady(true);
     };
-    if (img.complete) onload();
-    else img.addEventListener('load', onload);
-    return () => img.removeEventListener('load', onload);
-  }, []);
+    // Guard: if already initialized, don't reset on re-loads
+    if (img.complete && natural.w === 0) onload();
+    else if (natural.w === 0) img.addEventListener('load', onload, { once: true });
+    return () => {
+      // no-op — { once: true } auto-removes
+    };
+  }, [blobUrl]);
 
-  // ── Slider ──────────────────────────────────────────────────────────
+  // ── Slider ────────────────────────────────────────────────────
 
   const onSlider = useCallback(
     (v: number) => {
@@ -66,11 +73,10 @@ export default function ImageCropper({ file, onConfirm, onBack }: Props) {
     [imgSize],
   );
 
-  // ── Mouse handling — all native, all on the <img> ───────────────────
+  // ── Mouse handling — all native, all on the <img> ─────────────
 
   const tracking = useRef<{ offX: number; offY: number } | null>(null);
 
-  // Global mousemove/mouseup — registered ONCE
   useEffect(() => {
     const onMove = (ev: MouseEvent) => {
       const t = tracking.current;
@@ -96,8 +102,6 @@ export default function ImageCropper({ file, onConfirm, onBack }: Props) {
     };
   }, [imgSize]);
 
-  // mousedown goes DIRECTLY on the <img> via React onMouseDown.
-  // No refs, no effects, no cleanup.
   const onImgMouseDown = useCallback(
     (ev: React.MouseEvent) => {
       if (!areaRef.current || !imgRef.current) return;
@@ -105,16 +109,15 @@ export default function ImageCropper({ file, onConfirm, onBack }: Props) {
       const mx = ev.clientX - rect.left;
       const my = ev.clientY - rect.top;
       const a = areaRef.current;
-      // Only drag if inside the square
       if (mx >= a.x && mx <= a.x + a.size && my >= a.y && my <= a.y + a.size) {
         tracking.current = { offX: mx - a.x, offY: my - a.y };
         ev.preventDefault();
       }
     },
-    [], // stable — reads areaRef.current
+    [],
   );
 
-  // ── Confirm ─────────────────────────────────────────────────────────
+  // ── Confirm ───────────────────────────────────────────────────
 
   const handleConfirm = useCallback(() => {
     const a = areaRef.current;
@@ -123,36 +126,25 @@ export default function ImageCropper({ file, onConfirm, onBack }: Props) {
     onConfirm(file, Math.round(a.x * scale), Math.round(a.y * scale), Math.round(a.size * scale));
   }, [natural, imgSize, file, onConfirm]);
 
-  // ── Render ──────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────
 
   const toNatPx = natural.w && imgSize.w ? Math.round(area.size * natural.w / imgSize.w) : 0;
 
   return (
-    <div style={{ maxWidth: MAX_DISPLAY + 80, margin: '0 auto' }}>
-      <p style={{ marginBottom: 8, fontWeight: 600 }}>
+    <div className={styles.container}>
+      <p className={styles.instructions}>
         Drag the image to move the crop area &middot; Use the slider to resize
       </p>
 
-      <div
-        style={{
-          position: 'relative',
-          display: 'inline-block',
-          border: '1px solid #d1d5db',
-          borderRadius: 6,
-          overflow: 'hidden',
-          userSelect: 'none',
-          lineHeight: 0,
-        }}
-      >
-        {/* eslint-disable-next-line jsx-a11y/img-redundant-alt, jsx-a11y/no-noninteractive-element-interactions */}
+      <div className={styles.viewport}>
         <img
           ref={imgRef}
-          src={URL.createObjectURL(file)}
+          src={blobUrl || undefined}
           alt="Crop preview"
           draggable={false}
           onMouseDown={onImgMouseDown}
+          className={styles.image}
           style={{
-            display: 'block',
             width: imgSize.w || 1,
             height: imgSize.h || 1,
             cursor: tracking.current ? 'grabbing' : 'default',
@@ -161,9 +153,8 @@ export default function ImageCropper({ file, onConfirm, onBack }: Props) {
 
         {ready && (
           <>
-            {/* Dim overlay */}
             <svg
-              style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
+              className={styles.overlay}
               width={imgSize.w}
               height={imgSize.h}
             >
@@ -176,23 +167,19 @@ export default function ImageCropper({ file, onConfirm, onBack }: Props) {
               <rect width={imgSize.w} height={imgSize.h} fill="rgba(0,0,0,0.45)" mask="url(#cm)" />
             </svg>
 
-            {/* Frame border — pure visual, no events */}
             <div
+              className={styles.frame}
               style={{
-                position: 'absolute',
                 left: area.x,
                 top: area.y,
                 width: area.size,
                 height: area.size,
-                border: '2px solid #fff',
-                boxSizing: 'border-box',
-                pointerEvents: 'none',
               }}
             >
-              <div style={{ position: 'absolute', top: -3, left: -3, width: 6, height: 6, background: '#4f46e5', borderRadius: '50%' }} />
-              <div style={{ position: 'absolute', top: -3, right: -3, width: 6, height: 6, background: '#4f46e5', borderRadius: '50%' }} />
-              <div style={{ position: 'absolute', bottom: -3, left: -3, width: 6, height: 6, background: '#4f46e5', borderRadius: '50%' }} />
-              <div style={{ position: 'absolute', bottom: -3, right: -3, width: 6, height: 6, background: '#4f46e5', borderRadius: '50%' }} />
+              <span className={`${styles.handle} ${styles.handleTL}`} />
+              <span className={`${styles.handle} ${styles.handleTR}`} />
+              <span className={`${styles.handle} ${styles.handleBL}`} />
+              <span className={`${styles.handle} ${styles.handleBR}`} />
             </div>
           </>
         )}
@@ -200,31 +187,22 @@ export default function ImageCropper({ file, onConfirm, onBack }: Props) {
 
       {ready && (
         <>
-          <div style={{ marginTop: 12, maxWidth: imgSize.w }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600 }}>
-              Crop size: {toNatPx}×{toNatPx} px
-            </label>
-            <input
-              type="range"
+          <div className={styles.controls}>
+            <RangeSlider
+              label={`Crop size: ${toNatPx}×${toNatPx} px`}
               min={MIN_SZ}
               max={Math.min(imgSize.w, imgSize.h)}
               value={area.size}
-              onChange={(e) => onSlider(Number(e.target.value))}
-              style={{ width: '100%' }}
+              onChange={onSlider}
             />
           </div>
-          <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
-            <button onClick={onBack} style={{ padding: '8px 20px', background: '#e5e7eb', border: 'none', borderRadius: 6, cursor: 'pointer' }}>
+          <div className={styles.actions}>
+            <Button variant="secondary" onClick={onBack}>
               Back
-            </button>
-            <button
-              onClick={handleConfirm}
-              style={{
-                padding: '8px 20px', background: '#4f46e5', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer',
-              }}
-            >
+            </Button>
+            <Button variant="primary" onClick={handleConfirm}>
               Pixelate this area
-            </button>
+            </Button>
           </div>
         </>
       )}

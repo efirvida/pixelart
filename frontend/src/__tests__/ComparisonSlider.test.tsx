@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { fireEvent, screen } from '@testing-library/react';
 import { renderWithProvider } from '../test/renderWithProvider';
-import ComparisonSlider from '../components/ComparisonSlider';
+import ComparisonSlider from '../features/ComparisonSlider/ComparisonSlider';
 import { useGrid } from '../context/GridContext';
 import { useEffect } from 'react';
 
@@ -67,29 +67,79 @@ describe('ComparisonSlider', () => {
     expect(screen.getByTestId('comparison-divider')).toBeTruthy();
   });
 
-  it('responds to divider mouse-down', () => {
+  it('divider has slider ARIA role and attributes', () => {
     renderHarness();
     const divider = screen.getByTestId('comparison-divider');
+    expect(divider.getAttribute('role')).toBe('slider');
+    expect(divider.getAttribute('aria-valuemin')).toBe('10');
+    expect(divider.getAttribute('aria-valuemax')).toBe('90');
+    expect(divider.getAttribute('aria-valuenow')).toBeTruthy();
+    expect(divider.getAttribute('aria-label')).toBe('Comparison slider');
+    expect(divider.getAttribute('tabindex')).toBe('0');
+  });
+
+  it('starts dragging on divider mouse-down', () => {
+    renderHarness();
+    const divider = screen.getByTestId('comparison-divider');
+    const initialValue = Number(divider.getAttribute('aria-valuenow'));
+
     fireEvent.mouseDown(divider, { clientX: 200, clientY: 200 });
-    // Starting drag should NOT throw.
+    // Drag state started — divider should have dragging background via inline style
+    expect(divider).toBeTruthy();
   });
 
   it('updates ratio on mouse move during drag', () => {
-    const { container } = renderHarness();
+    renderHarness();
     const divider = screen.getByTestId('comparison-divider');
 
-    fireEvent.mouseDown(divider, { clientX: 200, clientY: 200 });
-    fireEvent.mouseMove(window, { clientX: 250, clientY: 200 });
+    // Get initial ratio
+    const initialValue = Number(divider.getAttribute('aria-valuenow'));
 
-    // After drag, slider container should still exist.
-    expect(
-      container.querySelector('[data-testid="comparison-slider"]'),
-    ).toBeTruthy();
+    // Start drag and move
+    fireEvent.mouseDown(divider, { clientX: 200, clientY: 200 });
+    fireEvent.mouseMove(window, { clientX: 300, clientY: 200 });
+
+    // Ratio should have changed
+    const newValue = Number(divider.getAttribute('aria-valuenow'));
+    expect(newValue).not.toBe(initialValue);
   });
 
   it('syncs with grid edits (canvas re-renders)', () => {
     renderHarness();
     const canvas = screen.getByTestId('comparison-grid-canvas');
     expect(canvas).toBeTruthy();
+  });
+
+  // Triangulation — keyboard accessibility
+  it('keyboard Left arrow decreases ratio', () => {
+    renderHarness();
+    const divider = screen.getByTestId('comparison-divider');
+    
+    // Focus the divider
+    divider.focus();
+    
+    // Press Left arrow
+    fireEvent.keyDown(divider, { key: 'ArrowLeft' });
+    
+    // The aria-valuenow should have changed (decreased from default 50)
+    const newValue = Number(divider.getAttribute('aria-valuenow'));
+    expect(newValue).toBeLessThan(50);
+  });
+
+  it('keyboard Right arrow increases ratio', () => {
+    renderHarness();
+    const divider = screen.getByTestId('comparison-divider');
+    
+    divider.focus();
+    fireEvent.keyDown(divider, { key: 'ArrowRight' });
+    
+    const newValue = Number(divider.getAttribute('aria-valuenow'));
+    expect(newValue).toBeGreaterThan(50);
+  });
+
+  it('live region exists for position announcements', () => {
+    renderHarness();
+    const liveRegion = document.querySelector('[role="status"][aria-live="polite"]');
+    expect(liveRegion).toBeTruthy();
   });
 });

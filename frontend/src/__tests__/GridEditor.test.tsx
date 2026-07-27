@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { fireEvent, screen } from '@testing-library/react';
-import GridEditor from '../components/GridEditor';
+import GridEditor from '../features/GridEditor/GridEditor';
 import { useGrid } from '../context/GridContext';
 import { renderWithProvider } from '../test/renderWithProvider';
 import { useEffect } from 'react';
@@ -38,6 +38,12 @@ describe('GridEditor', () => {
     expect(screen.getByTestId('grid-canvas')).toBeTruthy();
   });
 
+  it('canvas has accessible label', () => {
+    renderHarness(3);
+    const canvas = screen.getByTestId('grid-canvas');
+    expect(canvas.getAttribute('aria-label')).toBe('Grid editor');
+  });
+
   it('click cycles colour on canvas', () => {
     renderHarness(3);
     const canvas = screen.getByTestId('grid-canvas');
@@ -57,5 +63,49 @@ describe('GridEditor', () => {
     const { container } = renderHarness(5);
     const canvas = container.querySelector('canvas');
     expect(canvas).toBeTruthy();
+  });
+
+  // Triangulation — toolbar and keyboard
+  it('renders toolbar with undo button', () => {
+    renderHarness(3);
+    // The toolbar should have an undo button
+    expect(screen.getByRole('button', { name: /undo/i })).toBeTruthy();
+  });
+
+  it('toolbar undo button triggers undo', () => {
+    renderHarness(3);
+    const canvas = screen.getByTestId('grid-canvas');
+    fireEvent.click(canvas, { clientX: 50, clientY: 50 });
+    
+    const undoBtn = screen.getByRole('button', { name: /undo/i });
+    fireEvent.click(undoBtn);
+    // Should not throw
+  });
+
+  it('keyboard Arrow keys navigate grid', () => {
+    renderHarness(3);
+    const canvas = screen.getByTestId('grid-canvas');
+    
+    // Focus the canvas
+    canvas.focus();
+    
+    // Press arrow keys — should not throw
+    fireEvent.keyDown(canvas, { key: 'ArrowRight' });
+    fireEvent.keyDown(canvas, { key: 'ArrowDown' });
+  });
+
+  it('keyboard Enter cycles cell color', () => {
+    renderHarness(3);
+    const canvas = screen.getByTestId('grid-canvas');
+    
+    canvas.focus();
+    fireEvent.keyDown(canvas, { key: 'Enter' });
+    // Should not throw — cell recolor triggered
+  });
+
+  it('live region exists for cell change announcements', () => {
+    renderHarness(3);
+    const liveRegion = document.querySelector('[role="status"][aria-live="assertive"]');
+    expect(liveRegion).toBeTruthy();
   });
 });

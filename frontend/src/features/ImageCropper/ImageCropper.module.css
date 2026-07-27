@@ -1,0 +1,64 @@
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.instructions {
+  margin-bottom: var(--space-2);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.viewport {
+  position: relative;
+  display: inline-block;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  user-select: none;
+  line-height: 0;
+}
+
+.image {
+  display: block;
+  cursor: default;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.frame {
+  position: absolute;
+  border: 2px solid #fff;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.handle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: var(--color-primary);
+  border-radius: 50%;
+}
+
+.handleTL { top: -3px; left: -3px; }
+.handleTR { top: -3px; right: -3px; }
+.handleBL { bottom: -3px; left: -3px; }
+.handleBR { bottom: -3px; right: -3px; }
+
+.controls {
+  margin-top: var(--space-3);
+  max-width: 560px;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
