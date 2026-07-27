@@ -1,0 +1,35 @@
+# PixelArt Image Reducer — systemd service for the uvicorn backend
+#
+# Deploy:
+#   1. Copy to /etc/systemd/system/pixelart.service
+#   2. Edit User= and WorkingDirectory= to match your setup
+#   3. systemctl daemon-reload
+#   4. systemctl enable --now pixelart
+
+[Unit]
+Description=PixelArt Image Reducer API (uvicorn)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/pixelart/backend
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/pixelart/backend/.venv/bin/uvicorn api.main:app --host 127.0.0.1 --port 8000
+
+# Restart policy
+Restart=always
+RestartSec=3
+
+# Prevent the service from hogging resources
+LimitNOFILE=65536
+MemoryMax=512M
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=pixelart-api
+
+[Install]
+WantedBy=multi-user.target
