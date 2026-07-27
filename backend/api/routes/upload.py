@@ -12,7 +12,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
-from ..schemas import Dimensions, UploadResponse
+from ..schemas import Dimensions, MatchRequest, UploadResponse
 
 # Ensure backend/ is on sys.path so core imports work from any cwd.
 _backend_dir = Path(__file__).resolve().parents[2]
@@ -140,4 +140,62 @@ async def upload_image(
         grid=index_grid,
         palette=palette_list,
         dimensions=Dimensions(width=width, height=height),
+    )
+
+
+@router.post("/match", response_model=UploadResponse)
+async def match_pixels(request: MatchRequest) -> UploadResponse:
+    """Accept pre-processed RGB pixel grid, return palette-matched indices.
+
+    The frontend handles steps 1-6 of the pipeline (ingest, grayscale,
+    contrast, crop, resize, extract). This endpoint only does step 7:
+    CIELAB Delta-E-2000 palette matching via :func:`match_grid`.
+    """
+    # Size ceiling
+    height = len(request.grid)
+    if height == 0:
+        raise HTTPException(status_code=422, detail="Grid must not be empty")
+    width = len(request.grid[0])
+    if width == 0:
+        raise HTTPException(status_code=422, detail="Grid must not be empty")
+    if height > 200 or width > 200:
+        raise HTTPException(
+            status_code=413,
+            detail=f"Grid dimensions {width}x{height} exceed maximum 200x200",
+        )
+
+    # Palette validation
+    try:
+        validate_palette(request.palette)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    # Grid-level RGB validation
+    for r, row in enumerate(request.grid):
+        for c, pixel in enumerate(row):
+            if len(pixel) != 3:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Pixel at [{r}][{c}] has {len(pixel)} channels, expected 3",
+                )
+            for ch, val in enumerate(pixel):
+                if not (0 <= val <= 255):
+                    raise HTTPException(
+                        status_code=422,
+                        detail=f"Channel {ch} at [{r}][{c}] is {val}, expected 0-255",
+                    )
+
+    # Palette matching
+    try:
+        index_grid = match_grid(request.grid, request.palette)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    height_out = len(index_grid)
+    width_out = len(index_grid[0]) if height_out > 0 else 0
+
+    return UploadResponse(
+        grid=index_grid,
+        palette=request.palette,
+        dimensions=Dimensions(width=width_out, height=height_out),
     )
