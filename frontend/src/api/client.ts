@@ -84,6 +84,36 @@ export async function uploadImage(
   return res.json() as Promise<UploadResponse>;
 }
 
+// ---- Match ----------------------------------------------------------------
+
+/**
+ * Send a pre-processed N×N RGB pixel grid to the backend for palette matching.
+ *
+ * The frontend handles all preprocessing (grayscale, brightness, contrast,
+ * saturation, crop, resize). This endpoint only does CIELAB ΔE2000 matching.
+ *
+ * @param grid     N×N array of [R, G, B] triples, values 0–255.
+ * @param palette  Array of "#RRGGBB" hex colour strings (max 10).
+ * @returns        The matched grid indices, palette, and dimensions.
+ */
+export async function matchGrid(
+  grid: number[][][],
+  palette: string[],
+): Promise<UploadResponse> {
+  const res = await fetch('/api/match', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ grid, palette }),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw ApiError.fromResponse(res.status, body);
+  }
+
+  return res.json() as Promise<UploadResponse>;
+}
+
 // ---- Export ----------------------------------------------------------------
 
 /**
