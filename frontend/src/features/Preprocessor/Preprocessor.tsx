@@ -94,7 +94,11 @@ export default function Preprocessor({ file, onBack }: Props) {
 
   // ---- File decode ----------------------------------------------------------
 
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
+
   useEffect(() => {
+    let cancelled = false;
+
     // Validate type
     if (!ACCEPTED_TYPES.includes(file.type)) {
       toast.error(
@@ -104,48 +108,65 @@ export default function Preprocessor({ file, onBack }: Props) {
       return;
     }
 
-    const img = new Image();
-    const url = URL.createObjectURL(file);
+    async function load() {
+      try {
+        // Use FileReader (data URL) instead of URL.createObjectURL
+        // to avoid blob-revocation race conditions across mount/unmount.
+        const url = await readFileAsDataUrl(file);
+        if (cancelled) return;
 
-    img.onload = () => {
-      let w = img.naturalWidth;
-      let h = img.naturalHeight;
+        setDataUrl(url);
 
-      // Cap enormous images
-      if (w > MAX_SOURCE_DIM || h > MAX_SOURCE_DIM) {
-        const s = MAX_SOURCE_DIM / Math.max(w, h);
-        w = Math.round(w * s);
-        h = Math.round(h * s);
-        toast.info(`Large image resized to ${w}×${h} for processing`);
+        const img = new Image();
+        const loaded = new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error('Failed to decode image'));
+        });
+        img.src = url;
+        await loaded;
+        if (cancelled) return;
+
+        let w = img.naturalWidth;
+        let h = img.naturalHeight;
+
+        // Cap enormous images
+        if (w > MAX_SOURCE_DIM || h > MAX_SOURCE_DIM) {
+          const s = MAX_SOURCE_DIM / Math.max(w, h);
+          w = Math.round(w * s);
+          h = Math.round(h * s);
+          toast.info(`Large image resized to ${w}×${h} for processing`);
+        }
+
+        // Create offscreen source canvas
+        const canvas = createOffscreenCanvas(w, h);
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, w, h);
+        sourceCanvasRef.current = canvas;
+        setSourceSize({ w, h });
+
+        // Initial crop: center square of the smaller dimension
+        const minDim = Math.min(w, h);
+        setParams((prev) => ({
+          ...prev,
+          cropX: Math.round((w - minDim) / 2),
+          cropY: Math.round((h - minDim) / 2),
+          cropSize: minDim,
+        }));
+
+        setImageReady(true);
+      } catch (err) {
+        if (!cancelled) {
+          const msg = err instanceof Error ? err.message : 'Failed to decode image';
+          toast.error(`${msg}. The file may be corrupted or in an unsupported format.`);
+          onBack();
+        }
       }
+    }
 
-      // Create offscreen source canvas
-      const canvas = createOffscreenCanvas(w, h);
-      const ctx = canvas.getContext('2d')!;
-      ctx.drawImage(img, 0, 0, w, h);
-      sourceCanvasRef.current = canvas;
-      setSourceSize({ w, h });
+    load();
 
-      // Initial crop: center square of the smaller dimension
-      const minDim = Math.min(w, h);
-      setParams((prev) => ({
-        ...prev,
-        cropX: Math.round((w - minDim) / 2),
-        cropY: Math.round((h - minDim) / 2),
-        cropSize: minDim,
-      }));
-
-      setImageReady(true);
-    };
-
-    img.onerror = () => {
-      toast.error('Failed to decode the image. The file may be corrupted.');
-      onBack();
-    };
-
-    img.src = url;
     return () => {
-      URL.revokeObjectURL(url);
+      cancelled = true;
     };
   }, [file, onBack, toast]);
 
@@ -252,10 +273,10 @@ export default function Preprocessor({ file, onBack }: Props) {
 
       const response = await matchGrid(rgbGrid, colors);
 
-      // Create data URL of original for the editor
-      const dataUrl = await readFileAsDataUrl(file);
-
-      resetGrid(response.grid, response.palette, dataUrl);
+      // Use the cached dataUrl from initial load (faster, no re-read).
+      // Fall back to reading the file again if dataUrl isn't ready yet.
+      const src = dataUrl ?? await readFileAsDataUrl(file);
+      resetGrid(response.grid, response.palette, src);
 
       setStatusMessage('Processing complete');
       toast.success('Image processed successfully');
