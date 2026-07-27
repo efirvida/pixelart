@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGrid } from '../../context/GridContext';
 import { matchGrid, ApiError } from '../../api/client';
 import { useToast } from '../../components/feedback/Toast/ToastProvider';
@@ -27,6 +27,8 @@ interface Props {
 
 const MAX_SOURCE_DIM = 6000;
 
+export default memo(Preprocessor);
+
 /** Read a File as a data URL. */
 function readFileAsDataUrl(f: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -40,7 +42,7 @@ function readFileAsDataUrl(f: File): Promise<string> {
 /** Accepted image MIME types. */
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
-export default function Preprocessor({ file, onBack }: Props) {
+function Preprocessor({ file, onBack }: Props) {
   const { resetGrid } = useGrid();
   const toast = useToast();
 

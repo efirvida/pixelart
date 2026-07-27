@@ -87,6 +87,7 @@ function EditorLayout() {
           <div className={styles.workspaceLeft}>
             {file ? (
               <Preprocessor
+                key="main-preprocessor"
                 file={file}
                 onBack={handleBackFromPreprocessor}
               />
