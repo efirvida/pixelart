@@ -11,11 +11,10 @@ import { Header } from './components/layout/Header/Header';
 import { Section } from './components/layout/Section/Section';
 import { Footer } from './components/layout/Footer/Footer';
 import { Button } from './components/ui/Button/Button';
-import { Card } from './components/ui/Card/Card';
 import styles from './App.module.css';
 
 function EditorLayout() {
-  const { grid, palette, originalImage } = useGrid();
+  const { grid, palette } = useGrid();
   const [file, setFile] = useState<File | null>(null);
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
@@ -68,13 +67,23 @@ function EditorLayout() {
       }
       footer={<Footer />}
     >
+      {/*
+       * Three states:
+       * 1. No file, no data → UploadWidget (file selection)
+       * 2. File, no data yet → standalone Preprocessor (full width)
+       * 3. Has data → workspace: Preprocessor left + Editor right
+       *
+       * IMPORTANT: Preprocessor must NEVER render twice — its useEffect
+       * creates a blob URL that gets revoked on cleanup. Two instances
+       * would race and the second would fail to decode the image.
+       */}
       {!file && !hasData && (
         <Section title="Upload">
           <UploadWidget onFileSelected={handleFileSelected} />
         </Section>
       )}
 
-      {file && (
+      {file && !hasData && (
         <Section title="Preprocessor">
           <Preprocessor
             file={file}
@@ -84,63 +93,57 @@ function EditorLayout() {
       )}
 
       {hasData && (
-        <>
-          <div className={styles.workspace}>
-            <div className={styles.workspaceLeft}>
-              {file && (
-                <Section title="Preprocessor">
-                  <Preprocessor
-                    file={file}
-                    onBack={handleBackFromPreprocessor}
-                  />
-                </Section>
-              )}
-
-              {!file && (
-                <Section title="Upload">
-                  <UploadWidget onFileSelected={handleFileSelected} />
-                </Section>
-              )}
-            </div>
-
-            <div className={styles.workspaceRight}>
-              <Section title="Editor">
-                <div className={styles.editorLayout}>
-                  <ComparisonSlider />
-                  <GridEditor />
-                </div>
-
-                <form onSubmit={handleExport} className={styles.exportForm}>
-                  <label className={styles.exportLabel}>
-                    Cell size (mm)
-                    <input
-                      type="number"
-                      min={1}
-                      max={50}
-                      step={0.5}
-                      value={cellSize}
-                      onChange={(e) => setCellSize(Number(e.target.value))}
-                      className={styles.cellSizeInput}
-                    />
-                  </label>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    disabled={exporting}
-                    loading={exporting}
-                  >
-                    {exporting ? 'Generating PDF…' : 'Download PDF'}
-                  </Button>
-                  {exportError && (
-                    <span role="alert" className={styles.exportError}>
-                      {exportError}
-                    </span>
-                  )}
-                </form>
+        <div className={styles.workspace}>
+          <div className={styles.workspaceLeft}>
+            {file ? (
+              <Preprocessor
+                file={file}
+                onBack={handleBackFromPreprocessor}
+              />
+            ) : (
+              <Section title="Upload">
+                <UploadWidget onFileSelected={handleFileSelected} />
               </Section>
-            </div>
+            )}
           </div>
-        </>
+
+          <div className={styles.workspaceRight}>
+            <Section title="Editor">
+              <div className={styles.editorLayout}>
+                <ComparisonSlider />
+                <GridEditor />
+              </div>
+
+              <form onSubmit={handleExport} className={styles.exportForm}>
+                <label className={styles.exportLabel}>
+                  Cell size (mm)
+                  <input
+                    type="number"
+                    min={1}
+                    max={50}
+                    step={0.5}
+                    value={cellSize}
+                    onChange={(e) => setCellSize(Number(e.target.value))}
+                    className={styles.cellSizeInput}
+                  />
+                </label>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={exporting}
+                  loading={exporting}
+                >
+                  {exporting ? 'Generating PDF…' : 'Download PDF'}
+                </Button>
+                {exportError && (
+                  <span role="alert" className={styles.exportError}>
+                    {exportError}
+                  </span>
+                )}
+              </form>
+            </Section>
+          </div>
+        </div>
       )}
     </PageLayout>
   );
