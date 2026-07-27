@@ -5,6 +5,10 @@
   align-items: start;
 }
 
+.workspacePreprocessorOnly {
+  grid-template-columns: 1fr;
+}
+
 @media (max-width: 1024px) {
   .workspace {
     grid-template-columns: 1fr;
