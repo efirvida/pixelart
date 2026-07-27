@@ -1,3 +1,24 @@
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+.workspaceLeft {
+  min-width: 0;
+}
+
+.workspaceRight {
+  min-width: 0;
+}
+
 .editorLayout {
   display: flex;
   gap: var(--space-6);

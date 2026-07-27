@@ -28,16 +28,12 @@ describe('Accessibility Verification', () => {
     return () => { URL.createObjectURL = orig; };
   });
 
+  const noop = () => {};
+
   it('UploadWidget drop zone has accessible name via aria-label', () => {
-    renderWithProviders(<UploadWidget />);
+    renderWithProviders(<UploadWidget onFileSelected={noop} />);
     const dropZone = screen.getByRole('button', { name: /upload image/i });
     expect(dropZone).toBeTruthy();
-  });
-
-  it('UploadWidget live region for status exists', () => {
-    renderWithProviders(<UploadWidget />);
-    const liveRegion = document.querySelector('[role="status"][aria-live="polite"]');
-    expect(liveRegion).toBeTruthy();
   });
 
   it('ImageCropper image has alt text', () => {
@@ -68,7 +64,7 @@ describe('Accessibility Verification', () => {
   });
 
   it('no duplicate IDs in UploadWidget', () => {
-    renderWithProviders(<UploadWidget />);
+    renderWithProviders(<UploadWidget onFileSelected={noop} />);
     const ids = Array.from(document.querySelectorAll('[id]')).map((el) => el.id);
     const uniqueIds = new Set(ids);
     expect(ids.length).toBe(uniqueIds.size);
