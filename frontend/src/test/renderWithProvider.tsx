@@ -1,11 +1,16 @@
 import { render } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { GridProvider } from '../context/GridContext';
+import { ToastProvider } from '../components/feedback/Toast/ToastProvider';
 
 /**
- * Wrap a component in the ``GridProvider`` so it can access
- * ``useGrid()`` during tests.
+ * Wrap a component in ``GridProvider`` and ``ToastProvider`` so it can access
+ * ``useGrid()`` and ``useToast()`` during tests.
  */
 export function renderWithProvider(ui: ReactElement) {
-  return render(<GridProvider>{ui}</GridProvider>);
+  return render(
+    <ToastProvider>
+      <GridProvider>{ui}</GridProvider>
+    </ToastProvider>,
+  );
 }

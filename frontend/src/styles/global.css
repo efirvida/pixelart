@@ -1,0 +1,67 @@
+/* ==========================================================================
+   Global Styles — Pixel Art Editor
+   CSS reset, base typography, and utility rules.
+   Import tokens.css before this file or dependents will not resolve var().
+   ========================================================================== */
+
+@import './tokens.css';
+
+/* ---- Reset --------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---- Typography ---------------------------------------------------------- */
+
+html {
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--color-surface-base);
+  min-height: 100vh;
+}
+
+/* ---- Focus Visible Ring -------------------------------------------------- */
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Remove default focus outline for mouse/touch users.
+   :focus-visible above selectively reapplies it for keyboard. */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ---- Scrollbar Styling (subtle) ------------------------------------------ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-secondary);
+}
