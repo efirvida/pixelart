@@ -1,0 +1,43 @@
+/* ==========================================================================
+   Toolbar — CSS Module
+   ========================================================================== */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  flex-wrap: wrap;
+}
+
+.start {
+  justify-content: flex-start;
+}
+
+.center {
+  justify-content: center;
+}
+
+.end {
+  justify-content: flex-end;
+}
+
+.spaceBetween {
+  justify-content: space-between;
+}
+
+.wrap {
+  flex-wrap: wrap;
+}
+
+.nowrap {
+  flex-wrap: nowrap;
+}
+
+/* On mobile (< 768px), hide label text inside toolbar items.
+   Icons remain visible — use `title` attr or tooltip for accessible names. */
+@media (max-width: 767px) {
+  .toolbar :global(.toolbar-label) {
+    display: none;
+  }
+}

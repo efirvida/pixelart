@@ -1,0 +1,89 @@
+/* ==========================================================================
+   Toast — CSS Module
+   ========================================================================== */
+
+.container {
+  position: fixed;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-width: 280px;
+  max-width: 420px;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  color: #ffffff;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height);
+  box-shadow: var(--shadow-md);
+  pointer-events: auto;
+  animation: slideIn var(--transition-normal) ease-out;
+}
+
+.message {
+  flex: 1;
+  word-break: break-word;
+}
+
+.closeBtn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-size: var(--font-size-lg);
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.closeBtn:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+/* ---- Variants ------------------------------------------------------------- */
+
+.success {
+  background-color: var(--color-success);
+}
+
+.error {
+  background-color: var(--color-error);
+}
+
+.info {
+  background-color: var(--color-primary);
+}
+
+/* ---- Animation ------------------------------------------------------------ */
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

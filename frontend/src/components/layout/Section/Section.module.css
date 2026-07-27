@@ -1,0 +1,14 @@
+/* ==========================================================================
+   Section — CSS Module
+   ========================================================================== */
+
+.section {
+  margin-bottom: var(--space-6);
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-3) 0;
+}
