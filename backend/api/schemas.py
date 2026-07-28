@@ -39,7 +39,6 @@ class ExportRequest(BaseModel):
         ...,
         description="Palette hex strings in order (e.g. ['#FF0000', '#00FF00'])",
         min_length=1,
-        max_length=10,
     )
     cell_size_mm: float = Field(
         5.0,
@@ -91,7 +90,6 @@ class MatchRequest(BaseModel):
     )
     palette: List[str] = Field(
         ...,
-        description="Palette hex strings (max 10, #RRGGBB format)",
+        description="Palette hex strings (#RRGGBB format)",
         min_length=1,
-        max_length=10,
     )

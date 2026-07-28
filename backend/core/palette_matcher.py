@@ -18,7 +18,7 @@ IndexGrid2D = List[List[int]]
 RGBGrid2D = List[List[RGB]]
 
 HEX_PATTERN = re.compile(r"^#[0-9a-fA-F]{6}$")
-MAX_PALETTE_SIZE = 10
+MAX_PALETTE_SIZE = 50
 
 
 # ---------------------------------------------------------------------------

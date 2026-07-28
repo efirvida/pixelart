@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGrid } from '../../context/GridContext';
-import { matchGrid, ApiError } from '../../api/client';
+import { matchGrid, ApiError, DEFAULT_PALETTE } from '../../api/client';
 import { useToast } from '../../components/feedback/Toast/ToastProvider';
 import { Card } from '../../components/ui/Card/Card';
 import { Button } from '../../components/ui/Button/Button';
@@ -50,7 +50,7 @@ function Preprocessor({ file, onBack }: Props) {
 
   const [params, setParams] = useState<FilterParams>(DEFAULT_FILTERS);
   const [processing, setProcessing] = useState(false);
-  const [palette, setPalette] = useState('#000000\n#404040\n#B0B0B0\n#FFFFFF');
+  const [palette, setPalette] = useState(DEFAULT_PALETTE.join('\n'));
   const [sourceSize, setSourceSize] = useState({ w: 0, h: 0 });
   const [displaySize, setDisplaySize] = useState(600);
   const [imageReady, setImageReady] = useState(false);

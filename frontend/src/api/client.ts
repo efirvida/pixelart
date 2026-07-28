@@ -31,6 +31,34 @@ export const EXPORT_MODE_DESCRIPTIONS: Record<ExportMode, string> = {
   'table-only': 'Only coordinates — hide the final image',
 };
 
+export const DEFAULT_PALETTE: string[] = [
+  '#FFFFFF',
+  '#000000',
+  '#CFCFCF',
+  '#666666',
+  '#D9C3A5',
+  '#A56A43',
+  '#5B3A29',
+  '#D72631',
+  '#8B1E2D',
+  '#F8BBD0',
+  '#EC407A',
+  '#E91E63',
+  '#F57C00',
+  '#FDD835',
+  '#8BC34A',
+  '#43A047',
+  '#1B5E20',
+  '#26C6DA',
+  '#4FC3F7',
+  '#1E88E5',
+  '#1565C0',
+  '#283593',
+  '#B39DDB',
+  '#8E24AA',
+  '#5E35B1',
+];
+
 export interface ExportRequest {
   grid: number[][];
   palette: string[];

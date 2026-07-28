@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
+import { DEFAULT_PALETTE } from '../api/client';
 
 // ---- Types -----------------------------------------------------------------
 
@@ -51,7 +52,7 @@ export function useGrid(): GridState & GridActions {
 
 export function GridProvider({ children }: { children: ReactNode }) {
   const [grid, setGrid] = useState<number[][]>([]);
-  const [palette, setPalette] = useState<string[]>([]);
+  const [palette, setPalette] = useState<string[]>(DEFAULT_PALETTE);
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [gridSize, setGridSize] = useState(0);
   const [undoStack, setUndoStack] = useState<UndoEntry[]>([]);
