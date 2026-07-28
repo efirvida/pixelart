@@ -21,46 +21,8 @@ jobs:
           SSH_USER: ${{ secrets.DEPLOY_USER }}
         run: |
           set -e
-
-          # Write SSH key
           mkdir -p ~/.ssh
-          echo "$SSH_KEY" > ~/.ssh/deploy_key
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-
-          # Add host key
           ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
-
-          # Run deploy script
-          ssh -i ~/.ssh/deploy_key "$SSH_USER@$SSH_HOST" << 'ENDSSH'
-            set -e
-
-            echo "=== 1. Nginx config ==="
-            sudo cp /opt/pixelart/repo/deploy/nginx.conf /etc/nginx/sites-available/pixelart.conf
-            sudo ln -sf /etc/nginx/sites-available/pixelart.conf /etc/nginx/sites-enabled/pixelart.conf
-
-            echo "=== 2. Pull latest code ==="
-            cd /opt/pixelart/repo
-            git pull origin main
-
-            echo "=== 3. Backend: install deps ==="
-            cd /opt/pixelart/repo/backend
-            source .venv/bin/activate
-            pip install -U pip 2>/dev/null
-            pip install . 2>&1 | tail -2
-
-            echo "=== 4. Frontend: build ==="
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
-            nvm use 20 2>/dev/null || true
-            cd /opt/pixelart/repo/frontend
-            npm ci 2>&1 | tail -1
-            npx vite build 2>&1 | tail -3
-
-            echo "=== 5. Restart backend ==="
-            sudo systemctl restart pixelart
-
-            echo "=== 6. Reload nginx ==="
-            sudo nginx -t && sudo systemctl reload nginx
-
-            echo "=== Deploy OK ==="
-ENDSSH
+          ssh -i ~/.ssh/deploy_key "$SSH_USER@$SSH_HOST" bash -s < deploy/deploy.sh
