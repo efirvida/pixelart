@@ -11,7 +11,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 
-from ..schemas import ExportRequest
+from ..schemas import ExportMode, ExportRequest
 
 # Ensure backend/ is on sys.path so core imports work from any cwd.
 _backend_dir = Path(__file__).resolve().parents[2]
@@ -64,6 +64,7 @@ def export_pdf(body: ExportRequest) -> Response:
             grid=body.grid,
             palette=body.palette,
             cell_size_mm=body.cell_size_mm,
+            export_mode=body.export_mode.value,
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

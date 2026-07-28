@@ -7,16 +7,28 @@ schemas are pure data carriers.
 
 from __future__ import annotations
 
+from enum import Enum
 from typing import Dict, List
 
 from pydantic import BaseModel, Field
+
+
+class ExportMode(str, Enum):
+    """Export layout modes for the PDF."""
+
+    GRID_LEGEND = "grid-legend"
+    """Grid + color legend (swatch, hex, count)."""
+    GRID_TABLE = "grid-table"
+    """Grid + coordinate table grouped by color."""
+    TABLE_ONLY = "table-only"
+    """Coordinate table only — no grid."""
 
 
 class ExportRequest(BaseModel):
     """JSON body for POST /api/export.
 
     Accepts the matched grid (2-D list of palette indices), the palette
-    hex strings, and an optional physical cell size in millimetres.
+    hex strings, an optional physical cell size, and an export mode.
     """
 
     grid: List[List[int]] = Field(
@@ -34,6 +46,10 @@ class ExportRequest(BaseModel):
         ge=1.0,
         le=50.0,
         description="Physical side length of each cell in millimetres (default 5.0)",
+    )
+    export_mode: ExportMode = Field(
+        ExportMode.GRID_LEGEND,
+        description="Export layout: grid-legend, grid-table, or table-only",
     )
 
 

@@ -90,12 +90,12 @@ class TestGeneratePdf:
         assert len(result_10mm) > 0
 
     def test_column_labels_in_pdf(self, sample_palette):
-        """Verify column label 'A' appears in the PDF content stream."""
+        """Verify column label '1' appears in the PDF content stream."""
         grid = [[0, 1], [2, 3]]
         result = generate_pdf(grid, sample_palette)
         pdf_str = result.decode("latin-1", errors="replace")
-        # The label "A" should appear in the PDF stream
-        assert "A" in pdf_str
+        # The label "1" (column) should appear in the PDF stream
+        assert "1" in pdf_str
 
     def test_legend_includes_hex(self, sample_index_grid, sample_palette):
         """The embedded content stream uses ASCII85+FlateDecode

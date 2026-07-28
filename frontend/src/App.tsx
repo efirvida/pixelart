@@ -1,6 +1,13 @@
 import { useCallback, useState } from 'react';
 import type { FormEvent } from 'react';
-import { exportPdf, downloadBlob, ApiError } from './api/client';
+import {
+  exportPdf,
+  downloadBlob,
+  ApiError,
+  EXPORT_MODE_LABELS,
+  EXPORT_MODE_DESCRIPTIONS,
+} from './api/client';
+import type { ExportMode } from './api/client';
 import ComparisonSlider from './features/ComparisonSlider/ComparisonSlider';
 import GridEditor from './features/GridEditor/GridEditor';
 import Preprocessor from './features/Preprocessor/Preprocessor';
@@ -19,6 +26,7 @@ function EditorLayout() {
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
   const [cellSize, setCellSize] = useState(5);
+  const [exportMode, setExportMode] = useState<ExportMode>('grid-legend');
 
   const hasData = grid.length > 0 && grid[0].length > 0 && palette.length > 0;
 
@@ -40,6 +48,7 @@ function EditorLayout() {
           grid,
           palette,
           cell_size_mm: cellSize,
+          export_mode: exportMode,
         });
         downloadBlob(blob);
       } catch (err) {
@@ -54,7 +63,7 @@ function EditorLayout() {
         setExporting(false);
       }
     },
-    [grid, palette, cellSize],
+    [grid, palette, cellSize, exportMode],
   );
 
   return (
@@ -107,26 +116,51 @@ function EditorLayout() {
                 </div>
 
                 <form onSubmit={handleExport} className={styles.exportForm}>
-                  <label className={styles.exportLabel}>
-                    Cell size (mm)
-                    <input
-                      type="number"
-                      min={1}
-                      max={50}
-                      step={0.5}
-                      value={cellSize}
-                      onChange={(e) => setCellSize(Number(e.target.value))}
-                      className={styles.cellSizeInput}
-                    />
-                  </label>
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    disabled={exporting}
-                    loading={exporting}
-                  >
-                    {exporting ? 'Generating PDF…' : 'Download PDF'}
-                  </Button>
+                  <div className={styles.exportModeGroup}>
+                    {(Object.keys(EXPORT_MODE_LABELS) as ExportMode[]).map(
+                      (mode) => (
+                        <label key={mode} className={styles.exportModeOption}>
+                          <input
+                            type="radio"
+                            name="exportMode"
+                            value={mode}
+                            checked={exportMode === mode}
+                            onChange={() => setExportMode(mode)}
+                          />
+                          <span className={styles.exportModeLabel}>
+                            {EXPORT_MODE_LABELS[mode]}
+                          </span>
+                          <span className={styles.exportModeDesc}>
+                            {EXPORT_MODE_DESCRIPTIONS[mode]}
+                          </span>
+                        </label>
+                      ),
+                    )}
+                  </div>
+
+                  <div className={styles.exportControls}>
+                    <label className={styles.exportLabel}>
+                      Cell size (mm)
+                      <input
+                        type="number"
+                        min={1}
+                        max={50}
+                        step={0.5}
+                        value={cellSize}
+                        onChange={(e) => setCellSize(Number(e.target.value))}
+                        className={styles.cellSizeInput}
+                      />
+                    </label>
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      disabled={exporting}
+                      loading={exporting}
+                    >
+                      {exporting ? 'Generating PDF…' : 'Download PDF'}
+                    </Button>
+                  </div>
+
                   {exportError && (
                     <span role="alert" className={styles.exportError}>
                       {exportError}

@@ -17,10 +17,25 @@ export interface UploadResponse {
   dimensions: Dimensions;
 }
 
+export type ExportMode = 'grid-legend' | 'grid-table' | 'table-only';
+
+export const EXPORT_MODE_LABELS: Record<ExportMode, string> = {
+  'grid-legend': 'Grid + Legend',
+  'grid-table': 'Grid + Table',
+  'table-only': 'Color Table Only',
+};
+
+export const EXPORT_MODE_DESCRIPTIONS: Record<ExportMode, string> = {
+  'grid-legend': 'Grid with color swatches and cell counts',
+  'grid-table': 'Grid with coordinate reference grouped by color',
+  'table-only': 'Only coordinates — hide the final image',
+};
+
 export interface ExportRequest {
   grid: number[][];
   palette: string[];
   cell_size_mm?: number;
+  export_mode?: ExportMode;
 }
 
 // ---- Error type for structured error handling ------------------------------
