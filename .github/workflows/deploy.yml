@@ -1,0 +1,52 @@
+name: Deploy
+
+on:
+  push:
+    branches: ["main"]
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+
+            echo "=== Pull latest code ==="
+            cd /opt/pixelart/repo
+            eval "$(ssh-agent -s)" > /dev/null
+            ssh-add ~/.ssh/deploy_key 2>/dev/null || true
+            git pull origin main
+
+            echo "=== Backend: install deps ==="
+            cd /opt/pixelart/repo/backend
+            source .venv/bin/activate
+            pip install -U pip 2>/dev/null
+            pip install . 2>&1 | tail -2
+
+            echo "=== Frontend: build ==="
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+            nvm use 20 2>/dev/null || true
+            cd /opt/pixelart/repo/frontend
+            npm ci 2>&1 | tail -1
+            npx vite build 2>&1 | tail -3
+
+            echo "=== Restart backend ==="
+            sudo systemctl restart pixelart
+
+            echo "=== Reload nginx ==="
+            sudo nginx -t && sudo systemctl reload nginx
+
+            echo "=== Deploy OK ==="
