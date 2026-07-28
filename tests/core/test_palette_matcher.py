@@ -119,32 +119,32 @@ class TestDeltaE2000:
 class TestNearestPaletteColor:
     def test_exact_match(self):
         """Cell RGB identical to palette[0] → index 0, ΔE ≈ 0."""
-        palette_rgb = [
-            hex_to_rgb("#FF0000"),
-            hex_to_rgb("#00FF00"),
-            hex_to_rgb("#0000FF"),
+        palette_lab = [
+            rgb_to_lab(hex_to_rgb("#FF0000")),
+            rgb_to_lab(hex_to_rgb("#00FF00")),
+            rgb_to_lab(hex_to_rgb("#0000FF")),
         ]
-        idx = nearest_palette_color((255, 0, 0), palette_rgb)
+        idx = nearest_palette_color(rgb_to_lab((255, 0, 0)), palette_lab)
         assert idx == 0
 
     def test_closest_selected(self):
         """Brownish pixel → closest should be brown, not red/green."""
-        palette_rgb = [
-            hex_to_rgb("#FF0000"),  # red
-            hex_to_rgb("#00FF00"),  # green
-            hex_to_rgb("#8B4513"),  # saddle brown
+        palette_lab = [
+            rgb_to_lab(hex_to_rgb("#FF0000")),  # red
+            rgb_to_lab(hex_to_rgb("#00FF00")),  # green
+            rgb_to_lab(hex_to_rgb("#8B4513")),  # saddle brown
         ]
-        idx = nearest_palette_color((128, 64, 32), palette_rgb)
+        idx = nearest_palette_color(rgb_to_lab((128, 64, 32)), palette_lab)
         assert idx == 2  # brown
 
     def test_tie_breaking(self):
         """Equal ΔE2000 → lower index wins."""
         # Two identical palette entries; the first should be chosen.
-        palette_rgb = [
-            (128, 128, 128),
-            (128, 128, 128),  # identical to [0]
+        palette_lab = [
+            rgb_to_lab((128, 128, 128)),
+            rgb_to_lab((128, 128, 128)),  # identical to [0]
         ]
-        idx = nearest_palette_color((200, 200, 200), palette_rgb)
+        idx = nearest_palette_color(rgb_to_lab((200, 200, 200)), palette_lab)
         assert idx == 0
 
 

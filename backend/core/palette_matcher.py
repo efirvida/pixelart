@@ -95,28 +95,26 @@ def delta_e_2000(lab1: Lab, lab2: Lab) -> float:
 
 
 def nearest_palette_color(
-    pixel_rgb: RGB,
-    palette_rgb: List[RGB],
+    pixel_lab: Lab,
+    palette_lab: List[Lab],
 ) -> int:
-    """Return the index of the palette colour nearest to *pixel_rgb*.
+    """Return the index of the palette colour nearest to *pixel_lab*.
 
     Distances are measured with ΔE2000 in CIELAB space.  Ties are
     broken by lower palette index (deterministic).
 
     Args:
-        pixel_rgb: The cell colour to match.
-        palette_rgb: List of palette colours as RGB tuples.
+        pixel_lab: The cell colour in CIELAB.
+        palette_lab: Pre-computed palette colours in CIELAB.
 
     Returns:
         0-based palette index.
     """
-    pixel_lab = rgb_to_lab(pixel_rgb)
-
     best_idx = 0
     best_dist = float("inf")
 
-    for idx, prgb in enumerate(palette_rgb):
-        d = delta_e_2000(pixel_lab, rgb_to_lab(prgb))
+    for idx, plab in enumerate(palette_lab):
+        d = delta_e_2000(pixel_lab, plab)
         if d < best_dist:
             best_dist = d
             best_idx = idx
@@ -130,6 +128,9 @@ def match_grid(
 ) -> IndexGrid2D:
     """Map every cell of *grid_2d* to its nearest palette colour index.
 
+    Pre-computes palette CIELAB values once for significant speedup
+    with large palettes.
+
     Args:
         grid_2d: 2-D list of ``(R, G, B)`` tuples from the image pipeline.
         palette_hex: User-supplied palette as ``#RRGGBB`` strings.
@@ -138,9 +139,9 @@ def match_grid(
         2-D list of palette indices with the same row/column structure.
     """
     validate_palette(palette_hex)
-    palette_rgb = [hex_to_rgb(h) for h in palette_hex]
+    palette_lab = [rgb_to_lab(hex_to_rgb(h)) for h in palette_hex]
 
     return [
-        [nearest_palette_color(cell, palette_rgb) for cell in row]
+        [nearest_palette_color(rgb_to_lab(cell), palette_lab) for cell in row]
         for row in grid_2d
     ]
