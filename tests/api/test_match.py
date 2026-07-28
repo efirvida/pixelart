@@ -121,10 +121,10 @@ class TestGridValidation422:
         assert resp.status_code == 200, resp.text
 
     def test_uneven_rows(self):
-        """Rows of different lengths — the endpoint validates per-pixel."""
-        grid = [[[128, 128, 128]] * 10, [[128, 128, 128]] * 9]  # row 0: 10, row 1: 9
+        """Rows of different lengths — numpy can't convert to array."""
+        grid = [[[128, 128, 128]] * 10, [[128, 128, 128]] * 9]
         resp = client.post("/api/match", json=_make_payload(grid=grid))
-        assert resp.status_code == 200, resp.text
+        assert resp.status_code == 422, resp.text
 
     def test_pixel_with_two_channels(self):
         grid = [[[[128, 128]]]]  # 2 values instead of 3
