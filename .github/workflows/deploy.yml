@@ -20,9 +20,9 @@ jobs:
           SSH_HOST: ${{ secrets.DEPLOY_HOST }}
           SSH_USER: ${{ secrets.DEPLOY_USER }}
         run: |
-          set -e
+          set -eux
           mkdir -p ~/.ssh
-          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
-          ssh -i ~/.ssh/deploy_key "$SSH_USER@$SSH_HOST" bash -s < deploy/deploy.sh
+          ssh -v -i ~/.ssh/deploy_key "$SSH_USER@$SSH_HOST" echo "CONNECTED" 2>&1
