@@ -40,7 +40,7 @@ class TestValidatePalette:
             validate_palette([])
 
     def test_exceeds_limit(self):
-        palette = ["#000000"] * 11
+        palette = ["#000000"] * 51
         with pytest.raises(ValueError, match="exceeds maximum"):
             validate_palette(palette)
 

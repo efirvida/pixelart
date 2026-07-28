@@ -155,7 +155,7 @@ class TestPaletteValidation422:
         assert resp.status_code == 422, resp.text
 
     def test_too_many_colors(self):
-        palette = [f"#{i:06x}" for i in range(11)]
+        palette = [f"#{i:06x}" for i in range(51)]
         resp = client.post("/api/match", json=_make_payload(palette=palette))
         assert resp.status_code == 422, resp.text
 
