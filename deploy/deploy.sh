@@ -8,6 +8,8 @@ sudo ln -sf /etc/nginx/sites-available/pixelart.conf /etc/nginx/sites-enabled/pi
 
 echo "=== Pull latest code ==="
 cd /opt/pixelart/repo
+git reset --hard HEAD
+git clean -fd -e .venv
 git pull origin main
 
 echo "=== Backend: install deps ==="
