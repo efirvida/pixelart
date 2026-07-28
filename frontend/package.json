@@ -12,8 +12,10 @@
   },
   "dependencies": {
     "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "undici": "^7.29.0"
+    "react-dom": "^19.2.8"
+  },
+  "overrides": {
+    "undici": "7.29.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.0",

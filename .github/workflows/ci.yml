@@ -24,7 +24,7 @@ jobs:
 
       - name: Run backend tests
         run: |
-          PYTHONPATH=backend pytest tests/ -v --tb=short
+          PYTHONPATH=. pytest tests/ -v --tb=short
 
       - name: Upload test artifacts on failure
         if: failure()
